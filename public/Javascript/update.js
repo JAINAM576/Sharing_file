@@ -51,6 +51,7 @@ $(document).ready(function () {
             "id": teacherdata[tr_no].id
         }
         if (teacher && teacher.name && teacher.contact && teacher.id) {
+            loading_ani(1)
             $("#update_teacher").modal('hide');
             //query success
             $.post("/update/employee",
@@ -66,9 +67,11 @@ $(document).ready(function () {
                     teacherdata[tr_no].name = teacher.name;
                     teacherdata[tr_no].email = teacher.email;
                     teacherdata[tr_no].contact = teacher.contact;
+                    loading_ani(0)
                     alert_func(data);
                 }
             ).fail(function () {
+                loading_ani(0)    
                 alert_danger(`Some Error Occured`);
             });
         }
@@ -85,7 +88,7 @@ $(document).ready(function () {
         }
         else {
             //delete req
-
+            loading_ani(1)
             $("#update_teacher").modal('hide');
             $.post("/delete/employee",
                 {
@@ -95,9 +98,11 @@ $(document).ready(function () {
                     var table = $('#teacher_table').DataTable();
                     var row = $(`#${tr_no}_teacher`).parent().parent();
                     table.row(row).remove().draw();
+                    loading_ani(0)
                     alert_func(data);
                 }
             ).fail(function () {
+                loading_ani(0)
                 alert_danger(`Some Error Occured`);
             });
         }
@@ -159,6 +164,7 @@ $(document).ready(function () {
         }
         if (branch && branch.newbranch && branch.oldbranch && branch.newbatch && branch.oldbatch) {
             $("#update_branch").modal('hide');
+            loading_ani(1)
             $.post("/update/branch",
                 {
                     newData: branch
@@ -172,11 +178,11 @@ $(document).ready(function () {
                         branchdata[tr_no].branch = branch.newbranch;
                         branchdata[tr_no].batch = branch.newbatch;
                     }
-
-
+                    loading_ani(0)
                     alert_func(data);
                 }
             ).fail(function () {
+                loading_ani(0)
                 alert_danger(`Some Error Occured`);
             });
 
@@ -196,7 +202,10 @@ $(document).ready(function () {
             return false
         }
         else {
+            
+            $("#update_branch").modal("hide")
             //delete req
+            loading_ani(1)
             var newData = {
                 "branch": $("#field_branch").val(),
                 "batch": $("#field_batch").val()
@@ -207,13 +216,14 @@ $(document).ready(function () {
                     newData: newData
                 },
                 function (data, status) {
-                    $("#update_branch").modal("hide")
                     var table = $('#branch_table').DataTable();
                     var row = $(`#${tr_no}_branch`).parent().parent();
                     table.row(row).remove().draw()
+                    loading_ani(0)
                     alert_func(data);
                 }
             ).fail(function () {
+                loading_ani(0)
                 alert_danger(`Some Error Occured`);
             });
         }
@@ -273,7 +283,7 @@ $(document).ready(function () {
         }
         if (subject && subject.name && subject.newcode && subject.oldcode) {
             $("#update_subject").modal('hide');
-
+            loading_ani(1)
             $.post("/update/subject",
                 {
                     newData: subject
@@ -288,10 +298,11 @@ $(document).ready(function () {
                         update_row.childNodes[1].innerHTML = subject.newcode;
                     }
 
-
+                    loading_ani(0)
                     alert_func(data);
                 }
             ).fail(function () {
+                loading_ani(0)
                 alert_danger(`Some Error Occured`);
             });
 
@@ -313,7 +324,7 @@ $(document).ready(function () {
         }
         else {
             //delete req
-
+            loading_ani(1)
             $("#update_subject").modal('hide');
             var newData = {
                 "code": $("#subject_code").val()
@@ -326,9 +337,11 @@ $(document).ready(function () {
                     var table = $('#subject_table').DataTable();
                     var row = $(`#${tr_no}_subject`).parent().parent();
                     table.row(row).remove().draw()
+                    loading_ani(0)
                     alert_func(data);
                 }
             ).fail(function () {
+                loading_ani(0)
                 alert_danger(`Some Error Occured`);
             });
         }
@@ -529,6 +542,7 @@ $(document).ready(function () {
             "contact": $("#student_contact").val()
         }
         if (student) {
+            loading_ani(1)
             $("#update_student").modal('hide');
             //query success
             $.post("/update/student",
@@ -557,9 +571,11 @@ $(document).ready(function () {
                     studentdata[tr_no].email = student.email;
                     studentdata[tr_no].contact = student.contact;
 
+                    loading_ani(0)
                     alert_func(data);
                 }
             ).fail(function () {
+                loading_ani(0)
                 alert_danger(`Some Error Occured`);
             });
         }
@@ -576,6 +592,7 @@ $(document).ready(function () {
             return false
         }
         else {
+            loading_ani(1)
             //delete req
             $("#update_student").modal('hide');
             $.post("/delete/student",
@@ -586,9 +603,11 @@ $(document).ready(function () {
                     var table = $('#student_table').DataTable();
                     var row = $(`#${tr_no}_student`).parent().parent();
                     table.row(row).remove().draw()
+                    loading_ani(0)
                     alert_func(data);
                 }
             ).fail(function () {
+                loading_ani(0)
                 alert_danger(`Some Error Occured`);
             });
         }

@@ -6,7 +6,7 @@ const mysql = require("mysql");
 const cors = require("cors");
 const session = require('express-session');
 const connectLivereload = require("connect-livereload");
-const nodemailer=require("nodemailer")
+const nodemailer = require("nodemailer")
 
 // Returns a middleware to serve favicon 
 
@@ -23,7 +23,7 @@ var pool = mysql.createConnection({
   host: "localhost",
   database: "attendance_management",
   user: "root",
-  password: "jainams0703@h",
+  password: "root",
   dateStrings: true
 });
 app.use(session({
@@ -46,14 +46,14 @@ const Auth1 = (req, res, next) => {
   if (req.session.userid && req.session.role == 'Admin') {
     next(); // User is authenticated, continue to next middleware
   } else {
-    res.redirect('/503'); // User is not authenticated, redirect to login page
+    res.redirect('/'); // User is not authenticated, redirect to login page
   }
 }
 const Auth2 = (req, res, next) => {
   if (req.session.userid && req.session.role == 'Teacher') {
     next(); // User is authenticated, continue to next middleware
   } else {
-    res.redirect('/503'); // User is not authenticated, redirect to login page
+    res.redirect('/'); // User is not authenticated, redirect to login page
   }
 }
 
@@ -61,7 +61,7 @@ const Auth = (req, res, next) => {
   if (req.session.userid && req.session.role == 'Teacher' || req.session.role == 'Admin') {
     next(); // User is authenticated, continue to next middleware
   } else {
-    res.redirect('/503'); // User is not authenticated, redirect to login page
+    res.redirect('/'); // User is not authenticated, redirect to login page
   }
 }
 
@@ -104,7 +104,7 @@ app.get("/pending", (req, res) => {
   res.sendFile(__dirname + "/public/Pages/Request/Teacher_req.html");
 });
 //CODE
-app.get("/forgot_pass",(req,res)=>{
+app.get("/forgot_pass", (req, res) => {
   res.sendFile(__dirname + "/public/Pages/forgot_pass.html");
 })
 
@@ -178,7 +178,7 @@ app.post('/login', (req, res) => {
 
 //logout
 app.get('/logout', (req, res) => {
-  req.session.destroy(function() {
+  req.session.destroy(function () {
     res.clearCookie('userid');
     res.clearCookie('email');
     res.clearCookie('pass');
@@ -192,7 +192,7 @@ app.get('/logout', (req, res) => {
 app.post("/getstudents", Auth2, (req, res) => {
   const { sem, branch, batch } = req.body;
   var condition = `(batch='` + batch[0] + `'`, i = 1;
-  for (i = 1; i < (2); i++) {
+  for (i = 1; i < (batch.length); i++) {
     condition += ` OR batch='` + batch[i] + `'`;
   }
   condition += `)`;
@@ -204,48 +204,42 @@ app.post("/getstudents", Auth2, (req, res) => {
         console.log(error)
         res.status(500).json("failed");
       }
-      else if (results && results[0]) {
-        res.status(200).json(results);
-      }
       else {
-        res.status(500).json("failed");
+        res.status(200).json(results);
       }
     }
   );
 });
 app.post("/getstudents_already", (req, res) => {
-  console.log(req.body,"get students")
-  let id=req.session.userid
-  const { sem, branch, batch ,date,period} = req.body;
+  let id = req.session.userid
+  const { sem, branch, batch, date, period } = req.body;
   var condition = `(batch='` + batch[0] + `'`, i = 1;
-  for (i = 1; i < (2); i++) {
+  for (i = 1; i < (batch.length); i++) {
     condition += ` OR batch='` + batch[i] + `'`;
   }
   condition += `)`;
   pool.query(
     `select s.enrollment,s.name ,s.batch,a.attendance  from student as s  inner join   attendance
     as a on s.enrollment=a.enrollment where sem=(?) and branch=(?)  and  a.date=(?) and a.teacher_id=(?) and a.periodno=(?) and ` + condition,
-    [sem, branch,date,id,period],
+    [sem, branch, date, id, period],
     (error, results) => {
       if (error) {
         console.log(error)
         res.status(500).json("failed");
       }
       else if (results && results[0]) {
-        console.log(results,"in update attendance")
         res.status(200).json(results);
       }
-      else{
-        console.log(results,"in update  else")
+      else {
         res.status(200).send("0");
       }
-      
+
     }
   );
 });
 app.post("/add/attendance", Auth2, (req, res) => {
   const { submit_attendance } = req.body;
-let id=req.session.userid
+  let id = req.session.userid
   pool.query(
     "SELECT * FROM attendance where date=(?) AND periodno=(?) AND teacher_id=(?)",
     [submit_attendance[0].date, submit_attendance[0].periodno, id],
@@ -286,20 +280,19 @@ let id=req.session.userid
   );
 });
 
-app.post("/update/attendance",Auth2,(req,res)=>{
-console.log("req body",req.body)
-let {submit_attendance}=req.body
-let id=req.session.userid
-for (let index = 0; index < submit_attendance.length; index++) {
-  pool.query("update attendance set attendance=(?) where enrollment=(?) and teacher_id=(?) and date=(?) and periodno=(?)",[submit_attendance[index].attendance,submit_attendance[index].enrollment,id,submit_attendance[index].date,submit_attendance[index].periodno],(error,result)=>{
-    if(error){
-      console.log(  `error occured at ${index}`,error)
-      res.send("error")
-    }
-  })
-  
-}
-res.send("done")
+app.post("/update/attendance", Auth2, (req, res) => {
+  let { submit_attendance } = req.body
+  let id = req.session.userid
+  for (let index = 0; index < submit_attendance.length; index++) {
+    pool.query("update attendance set attendance=(?) where enrollment=(?) and teacher_id=(?) and date=(?) and periodno=(?)", [submit_attendance[index].attendance, submit_attendance[index].enrollment, id, submit_attendance[index].date, submit_attendance[index].periodno], (error, result) => {
+      if (error) {
+        console.log(`error occured at ${index}`, error)
+        res.send("error")
+      }
+    })
+
+  }
+  res.send("done")
 })
 
 app.post("/add/students", Auth1, (req, res) => {
@@ -432,7 +425,7 @@ app.get("/getallbranch", Auth1, (req, res) => {
   });
 });
 //----------------------  GETALL DISTINCT BRANCH ---------------------------------------
-app.get("/getallbranch/distinct", Auth1, (req, res) => {
+app.get("/getallbranch/distinct", Auth, (req, res) => {
   pool.query("SELECT distinct branch FROM field;", (error, results) => {
     if (error) {
       console.log(error);
@@ -504,66 +497,111 @@ app.get("/teacher/timetable", Auth2, (req, res) => {
   );
 });
 
+//-----------------------teacher analysis--------------------------
+app.post("/teacher/studentinfo/subject", Auth2, (req, res) => {
+  var { fromdate, branch, year } = req.body;
+  pool.query(`SELECT DISTINCT attendance.subject,attendance.type FROM attendance INNER JOIN student ON attendance.enrollment=student.enrollment 
+  WHERE attendance.date > "${fromdate}" AND student.branch="${branch}" AND student.batchyear="${year}" AND attendance.teacher_id=${req.session.userid}`, (error, results) => {
+    if (error) {
+      console.log(error);
+      res.status(500).json("failed");
+    } else {
 
+      res.status(200).json(results);
+    }
+  });
+});
+
+app.post("/teacher/studentinfo", Auth2, (req, res) => {
+  var { fromdate, branch, year } = req.body;
+  pool.query(`SELECT * FROM attendance INNER JOIN student ON attendance.enrollment=student.enrollment 
+  WHERE attendance.date > "${fromdate}" AND student.branch="${branch}" AND student.batchyear="${year}" AND attendance.teacher_id=${req.session.userid}`, (error, results) => {
+    if (error) {
+      console.log(error);
+      res.status(500).json("failed");
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
 
 //!check if row is in or not then insert/update
-app.post("/teacher_time_table_insert",Auth2,(req,res)=>{
-  let id=req.session.userid
-  let {branch,batch,sem,subject,type,period_no,day}=req.body
-  let str=""
-  for (let index = 0; index < batch.length-1; index++) {
-    str+=batch[index]+","
-    
+app.post("/teacher_time_table_insert", Auth2, (req, res) => {
+  let id = req.session.userid
+  let { branch, batch, sem, subject, type, period_no, day } = req.body
+  let str = ""
+  for (let index = 0; index < batch.length - 1; index++) {
+    str += batch[index] + ","
+
   }
-  str+=batch[batch.length-1]
-  pool.query("select * from teacher_timetable where id=(?) and period_no=(?) and day=(?)",[id,period_no,day],(error,result)=>{
-    if(error){
-      console.log(error,"error")
+  str += batch[batch.length - 1]
+  pool.query("select * from teacher_timetable where id=(?) and period_no=(?) and day=(?)", [id, period_no, day], (error, result) => {
+    if (error) {
+      console.log(error, "error")
       res.send("error")
     }
-    else{
-      if(result.length==0){
-        pool.query("insert into teacher_timetable value(?,?,?,?,?,?,?,?)",[id,branch,str,sem,subject,type,period_no,day],(error,result)=>{
-          if(error){
-            console.log(error,"error")
+    else {
+      if (result.length == 0) {
+        pool.query("insert into teacher_timetable value(?,?,?,?,?,?,?,?)", [id, branch, str, sem, subject, type, period_no, day], (error, result) => {
+          if (error) {
+            console.log(error, "error")
             res.send("error")
           }
-          else{
+          else {
             res.send("done")
           }
         })
       }
-      else{
-        pool.query("update  teacher_timetable set branch=(?),batch=(?) , sem=(?) ,subject=(?) , type=(?)  where id=(?) and period_no=(?) and day=(?)",[branch,str,sem,subject,type,id,period_no,day],(error,result)=>{
-          if(error){
-            console.log(error,"error")
+      else {
+        pool.query("update  teacher_timetable set branch=(?),batch=(?) , sem=(?) ,subject=(?) , type=(?)  where id=(?) and period_no=(?) and day=(?)", [branch, str, sem, subject, type, id, period_no, day], (error, result) => {
+          if (error) {
+            console.log(error, "error")
             res.send("error")
-          }else{
+          } else {
             res.send("done")
           }
         })
       }
     }
   })
- 
+
 
 })
 
 //!! get teacher teaching subject
-app.get("/teacher_subject",Auth2,(req,res)=>{
-  let id=req.session.userid;
-  pool.query("select a.name from subject as a inner join teaching as t on a.code=t.code where id=(?)",[id],(error,result)=>{
-    if(error)
-    {
-      console.log("error in get teacher teaching subject",error)
+app.get("/teacher_subject", Auth2, (req, res) => {
+  let id = req.session.userid;
+  pool.query("select a.name from subject as a inner join teaching as t on a.code=t.code where id=(?)", [id], (error, result) => {
+    if (error) {
+      console.log("error in get teacher teaching subject", error)
       res.send("error")
     }
-    else{
+    else {
       res.send(result)
     }
   })
 })
 
+
+app.post("/add/one/student", Auth1, (req, res) => {
+  const { student } = req.body;
+  division = student.batch[0];
+  pool.query(
+    `insert into student(name,enrollment,branch,batch,division,batchyear,sem,email,contact) 
+                        values(? , ?, ?, ?, ?, ?, ?, ?, ?);`,
+    [student.name, student.enrollment, student.branch, student.batch,
+      division, student.batchyear, student.sem, student.email, student.contact],
+    (error, results) => {
+      if (error) {
+        console.log(error)
+        res.status(500).json(`Problem Accured While inserting ${student.name}`)
+      }
+      else {
+        res.status(200).json(`Successfully inserting ${student.name}`)
+      }
+    }
+  );
+});
 //--------------------------- Update Student -----------------------------------------------------
 app.post("/update/student", Auth1, (req, res) => {
   const { newData } = req.body;
@@ -577,7 +615,6 @@ app.post("/update/student", Auth1, (req, res) => {
         if (error) {
           res.status(500).json(error);
         } else if (newData.oldenrollment != newData.newenrollment && results && results[0]) {
-          console.log(results[0]);
           res.status(500).json("Enrollment is already there");
         } else {
           pool.query(
@@ -775,6 +812,25 @@ app.post("/update/subject", Auth1, (req, res) => {
   }
 });
 
+////------------------------- Update Sem ----------------------------
+app.post("/update/sem", Auth1, (req, res) => {
+  const { u_branch, u_batchyear } = req.body;
+  if (!u_branch || !u_batchyear) {
+    res.status(500).json({ error: "Bad Request - Missing required id" });
+  } else {
+    pool.query(
+      "UPDATE student SET sem = sem+1 WHERE branch=(?) and batchyear=(?)",
+      [u_branch, u_batchyear],
+      (error, results) => {
+        if (error) {
+          res.status(500).json(error);
+        } else {
+          res.status(200).json("Sucessfully Updated");
+        }
+      }
+    );
+  }
+});
 
 // //--------------------------Delete student------------------------------
 app.post("/delete/student", Auth1, (req, res) => {
@@ -883,71 +939,69 @@ app.post("/analysis/getalldata", Auth1, (req, res) => {
 
 
 //for teacher request
-app.post("/teacher_req",Auth1,(req,res)=>{
-  const {email}=req.body
-  
-query=email==1?"SELECT name,role,email,contact,pass  FROM teacher_req where email=(?) or 1;":"SELECT name,role,email,contact,pass  FROM teacher_req where email=(?) ;"
-  pool.query(query,[email], (error, results) => {
+app.post("/teacher_req", Auth1, (req, res) => {
+  const { email } = req.body
+
+  query = email == 1 ? "SELECT name,role,email,contact,pass  FROM teacher_req where email=(?) or 1;" : "SELECT name,role,email,contact,pass  FROM teacher_req where email=(?) ;"
+  pool.query(query, [email], (error, results) => {
     if (error) {
       console.log(error);
       res.status(500).json("failed");
     } else {
-     
+
       res.status(200).json(results);
     }
   });
 })
 
 //! ACCEPTED AND REJECTED THE REQUEST 
-app.post('/teacher_req_decision/:id',Auth1,(req,res)=>{
-  const {email,name,role,contact,pass}=req.body
-  id=Number(req.params.id)
+app.post('/teacher_req_decision/:id', Auth1, (req, res) => {
+  const { email, name, role, contact, pass } = req.body
+  id = Number(req.params.id)
 
 
-  
-  pool.query('delete from teacher_req where email=(?)',[email],(error,result)=>{
-    if(error){
-      console.log(error,"in decision")
+
+  pool.query('delete from teacher_req where email=(?)', [email], (error, result) => {
+    if (error) {
+      console.log(error, "in decision")
       res.send("error")
     }
-    else{
-      if( id==1){
-      pool.query("insert into employee (role,name,pass,email,contact,status) values(?,?,?,?,?,?)",[role,name,pass,email,contact,1],(error,result)=>{
-        if(error){
-          console.log(error,"in decision in insertion")
-          res.send("error")
-        }
-        else{
+    else {
+      if (id == 1) {
+        pool.query("insert into employee (role,name,pass,email,contact,status) values(?,?,?,?,?,?)", [role, name, pass, email, contact, 1], (error, result) => {
+          if (error) {
+            console.log(error, "in decision in insertion")
+            res.send("error")
+          }
+          else {
 
-       
-      async function send(to_mail, message, subject, email) {
 
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: "jainamsanghavi008@gmail.com",
-            pass: "yadznuqzkalbilnu",
-          },
-        });
-        const mailoptions = {
-          from: "jainamsanghavi008@gmail.com",
-          to: to_mail,
-    
-          html: email,
-          subject: subject,
-        };
-        try {
-          const result = await transporter.sendMail(mailoptions);
-          console.log("success");
-          res.send("done")
-        } catch (error) {
-    
-          console.log("error in  req  ", error);
-          res.send("error")
+            async function send(to_mail, message, subject, email) {
 
-        }
-      }
-      text= id==1?`<h3>Hello </h3> 
+              const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                  user: "jainamsanghavi008@gmail.com",
+                  pass: "yadznuqzkalbilnu",
+                },
+              });
+              const mailoptions = {
+                from: "jainamsanghavi008@gmail.com",
+                to: to_mail,
+
+                html: email,
+                subject: subject,
+              };
+              try {
+                const result = await transporter.sendMail(mailoptions);
+                res.send("done")
+              } catch (error) {
+                console.log("error in  req  ", error);
+                res.send("error")
+
+              }
+            }
+            text = id == 1 ? `<h3>Hello </h3> 
        
       <hr>
      Congratulation !  your request   has been accepted by Authority.  
@@ -962,7 +1016,7 @@ app.post('/teacher_req_decision/:id',Auth1,(req,res)=>{
      <div>Best regards.</div>
       <hr>
     
-     `:`<h3>Hello </h3> 
+     `: `<h3>Hello </h3> 
        
      <hr>
     Sorry !  your request   has been Rejected by Authority.  
@@ -977,45 +1031,44 @@ app.post('/teacher_req_decision/:id',Auth1,(req,res)=>{
      <hr>
     
     `;
-      send(
-        email,
-        '',
-      `Regarding ${role} Request `,
-       text,
-      );
-    }
-  })
-}
-else{
-       
-  async function send(to_mail, message, subject, email) {
+            send(
+              email,
+              '',
+              `Regarding ${role} Request `,
+              text,
+            );
+          }
+        })
+      }
+      else {
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "jainamsanghavi008@gmail.com",
-        pass: "yadznuqzkalbilnu",
-      },
-    });
-    const mailoptions = {
-      from: "jainamsanghavi008@gmail.com",
-      to: to_mail,
+        async function send(to_mail, message, subject, email) {
 
-      html: email,
-      subject: subject,
-    };
-    try {
-      const result = await transporter.sendMail(mailoptions);
-      console.log("success");
-      res.send("done")
-    } catch (error) {
+          const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+              user: "jainamsanghavi008@gmail.com",
+              pass: "yadznuqzkalbilnu",
+            },
+          });
+          const mailoptions = {
+            from: "jainamsanghavi008@gmail.com",
+            to: to_mail,
 
-      console.log("error in  req  ", error);
-      res.send("error")
+            html: email,
+            subject: subject,
+          };
+          try {
+            const result = await transporter.sendMail(mailoptions);
+            res.send("done")
+          } catch (error) {
 
-    }
-  }
-  text= id==1?`<h3>Hello </h3> 
+            console.log("error in  req  ", error);
+            res.send("error")
+
+          }
+        }
+        text = id == 1 ? `<h3>Hello </h3> 
    
   <hr>
  Congratulation !  your request   has been accepted by Authority.  
@@ -1030,7 +1083,7 @@ else{
  <div>Best regards.</div>
   <hr>
 
- `:`<h3>Hello </h3> 
+ `: `<h3>Hello </h3> 
    
  <hr>
 Sorry !  your request   has been Rejected by Authority.  
@@ -1045,13 +1098,13 @@ Sorry !  your request   has been Rejected by Authority.
  <hr>
 
 `;
-  send(
-    email,
-    '',
-    `Regarding ${role}  Request `,
-   text,
-  );  
-}
+        send(
+          email,
+          '',
+          `Regarding ${role}  Request `,
+          text,
+        );
+      }
     }
   })
 
@@ -1060,168 +1113,107 @@ Sorry !  your request   has been Rejected by Authority.
 })
 
 //get _batch and branch
-app.get("/get_branch_batch",Auth2,(req,res)=>{
-pool.query("select * from field",(error,result)=>{
-  if(error){
-    console.log("error in branch and batch",error )
-    res.send("error")
-  }
-  else{
-    res.send(result)
-  }
-})
+app.get("/get_branch_batch", Auth2, (req, res) => {
+  pool.query("select * from field", (error, result) => {
+    if (error) {
+      console.log("error in branch and batch", error)
+      res.send("error")
+    }
+    else {
+      res.send(result)
+    }
+  })
 })
 
 
 //! get teacher informations
-app.get("/teacher_information",Auth2,(req,res)=>{
-let id=req.session.userid
-pool.query("select name,email,contact from employee where id=(?)",[id],(error,result)=>{
-  if(error){
-    console.log(error,"error in teacher info")
-    res.send("error")
-  }
-  else{
-    res.send(result)
-  }
-})
-})
-app.post("/update_teacher_info",Auth2,(req,res)=>{
-  let id=req.session.userid
-  let {name,contact,email}=req.body
-  pool.query("update employee set name=(?) , email= (?) , contact=(?) where id=(?)",[name,email,contact,id],(error,result)=>{
-    if(error){
-      console.log("error in update ",error)
+app.get("/teacher_information", Auth2, (req, res) => {
+  let id = req.session.userid
+  pool.query("select name,email,contact from employee where id=(?)", [id], (error, result) => {
+    if (error) {
+      console.log(error, "error in teacher info")
       res.send("error")
     }
-    else{
+    else {
+      res.send(result)
+    }
+  })
+})
+app.post("/update_teacher_info", Auth2, (req, res) => {
+  let id = req.session.userid
+  let { name, contact, email } = req.body
+  pool.query("update employee set name=(?) , email= (?) , contact=(?) where id=(?)", [name, email, contact, id], (error, result) => {
+    if (error) {
+      console.log("error in update ", error)
+      res.send("error")
+    }
+    else {
       res.send("done")
     }
   })
 })
 
 //!check email
-let email_getter={
-  email:undefined,
-  otp:undefined
+let email_getter = {
+  email: undefined,
+  otp: undefined
 }
-app.post("/email_check",(req,res)=>{
-  let {email,role}=req.body
+app.post("/email_check", (req, res) => {
+  let { email, role } = req.body
 
-  
-pool.query("select * from employee where email=(?) and role=(?) ",[email,role],(error,result)=>{
-  if(error){
-    console.log("error in email check",error)
-    res.send("error")
-  }
-  else{
-    if(result.length==0){
-      res.send("0")
+
+  pool.query("select * from employee where email=(?) and role=(?) ", [email, role], (error, result) => {
+    if (error) {
+      console.log("error in email check", error)
+      res.send("error")
     }
-    else{
-      email_getter.email=email
-    res.send("1")
+    else {
+      if (result.length == 0) {
+        res.send("0")
+      }
+      else {
+        email_getter.email = email
+        res.send("1")
+      }
     }
-  }
-})
-  
+  })
+
 })
 
 
 //!geting get otp html
-app.get("/get_otp",(req,res)=>{
-  if(email_getter.email==undefined){
+app.get("/get_otp", (req, res) => {
+  if (email_getter.email == undefined) {
     res.redirect("/503")
-      }
+  }
   res.sendFile(__dirname + "/public/Pages/get_otp.html");
 })
 //!geting get password html
-app.get("/set_new_pass",(req,res)=>{
-  if(email_getter.email==undefined){
+app.get("/set_new_pass", (req, res) => {
+  if (email_getter.email == undefined) {
     res.redirect("/503")
-      }
+  }
   res.sendFile(__dirname + "/public/Pages/set_new_pass.html");
 })
 
 
-app.get("/get_otp_resend",(req,res)=>{
-  if(email_getter.email==undefined){
-res.redirect("/503")
+app.get("/get_otp_resend", (req, res) => {
+  if (email_getter.email == undefined) {
+    res.redirect("/503")
   }
-  let otp_text="";
+  let otp_text = "";
   function generateOTP(length) {
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let otp = '';
     for (let i = 0; i < length; i++) {
-        const randomIndex = Math.floor(Math.random() * charset.length);
-        otp += charset[randomIndex];
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      otp += charset[randomIndex];
     }
     return otp;
 
-}
-const otpLength = 6; // Specify the length of OTP you want
-    const generatedOTP = generateOTP(otpLength);
-    async function send(to_mail, message, subject, email) {
-
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: "jainamsanghavi008@gmail.com",
-          pass: "yadznuqzkalbilnu",
-        },
-      });
-      const mailoptions = {
-        from: "jainamsanghavi008@gmail.com",
-        to: to_mail,
-  
-        html: email,
-        subject: subject,
-      };
-      try {
-        const result = await transporter.sendMail(mailoptions);
-        console.log("success");
-        email_getter.otp=generatedOTP
-        res.send("1")
-      } catch (error) {
-  
-        console.log("error in  req  ", error);
-        res.send("error")
-
-      }
-    }
-   
-    send(
-      email_getter.email,
-      '',
-    'Resend OTP',
-    generatedOTP,
-    );
-})
-app.post("/verify_otp",(req,res)=>{
-let {otp}=req.body
-console.log(otp,email_getter.otp)
-if(otp==email_getter.otp){
-  res.send("1")
-}
-else{
-  res.send("0")
-}
-})
-
-
-//!upDATE NEW password
-app.post("/update_pass",(req,res)=>{
-  if(email_getter.email==undefined){
-    res.send("/503")
   }
-  let {password}=req.body
-  console.log(password)
-  pool.query("update attendance_management.employee set pass=(?) where email=(?)",[password,email_getter.email],(error,result)=>{
-if(error){
-  console.log(error,"error in set new pass")
-  res.send("0")
-}
-else{
+  const otpLength = 6; // Specify the length of OTP you want
+  const generatedOTP = generateOTP(otpLength);
   async function send(to_mail, message, subject, email) {
 
     const transporter = nodemailer.createTransport({
@@ -1240,7 +1232,7 @@ else{
     };
     try {
       const result = await transporter.sendMail(mailoptions);
-      console.log("success");
+      email_getter.otp = generatedOTP
       res.send("1")
     } catch (error) {
 
@@ -1249,69 +1241,37 @@ else{
 
     }
   }
- 
+
   send(
     email_getter.email,
     '',
-  'Password changes',
-  "Your password changed successfully.",
+    'Resend OTP',
+    generatedOTP,
   );
-
-}
-  })
-
-
+})
+app.post("/verify_otp", (req, res) => {
+  let { otp } = req.body
+  if (otp == email_getter.otp) {
+    res.send("1")
+  }
+  else {
+    res.send("0")
+  }
 })
 
-// getting subjects
-app.get("/get_subjects",(req,res)=>{
-  pool.query("select * from subject",(error,result)=>{
-    if(error){
-      console.log(error,"error in get subjects")
-      res.send(-1)
 
+//!upDATE NEW password
+app.post("/update_pass", (req, res) => {
+  if (email_getter.email == undefined) {
+    res.send("/503")
+  }
+  let { password } = req.body
+  pool.query("update attendance_management.employee set pass=(?) where email=(?)", [password, email_getter.email], (error, result) => {
+    if (error) {
+      console.log(error, "error in set new pass")
+      res.send("0")
     }
-    else if (result.length==0){
-      console.log("no data  in get subjects")
-      res.send(-1)
-    }
-    else{
-      res.send(result)
-    }
-  })
-})
-
-//getting teachers
-
-app.get("/get_teachers",(req,res)=>{
-  pool.query("select id,email from employee where role='Teacher'",(error,result)=>{
-    if(error){
-      console.log(error,"error in get teachers")
-      res.send(-1)
-
-    }
-    else if (result.length==0){
-      console.log("no data  in get teachers")
-      res.send(-1)
-    }
-    else{
-      res.send(result)
-    }
-  })
-})
-
-//assign subject
-
-app.post("/assign_teacher_subject",(req,res)=>{
-  let {id,email,subject,code,type}=req.body
-  console.log(req.body)
-  pool.query("insert into teaching values(?,?,?)",[id,code,type],(error,result)=>{
-    if(error){
-      console.log(error,"error in get teachers")
-      res.send(-1)
-
-    }
-    else{
+    else {
       async function send(to_mail, message, subject, email) {
 
         const transporter = nodemailer.createTransport({
@@ -1324,22 +1284,105 @@ app.post("/assign_teacher_subject",(req,res)=>{
         const mailoptions = {
           from: "jainamsanghavi008@gmail.com",
           to: to_mail,
-    
+
           html: email,
           subject: subject,
         };
         try {
           const result = await transporter.sendMail(mailoptions);
-          console.log("success");
-          res.send("done")
+          res.send("1")
         } catch (error) {
-    
+
           console.log("error in  req  ", error);
           res.send("error")
-    
+
         }
       }
-      text= `<h3>Hello </h3> 
+
+      send(
+        email_getter.email,
+        '',
+        'Password changes',
+        "Your password changed successfully.",
+      );
+
+    }
+  })
+
+
+})
+
+// getting subjects
+app.get("/get_subjects", (req, res) => {
+  pool.query("select * from subject", (error, result) => {
+    if (error) {
+      console.log(error, "error in get subjects")
+      res.send(-1)
+
+    }
+    else if (result.length == 0) {
+      res.send(-1)
+    }
+    else {
+      res.send(result)
+    }
+  })
+})
+
+//getting teachers
+
+app.get("/get_teachers", (req, res) => {
+  pool.query("select id,email,name from employee where role='Teacher'", (error, result) => {
+    if (error) {
+      console.log(error, "error in get teachers")
+      res.send(-1)
+
+    }
+    else if (result.length == 0) {
+      res.send(-1)
+    }
+    else {
+      res.send(result)
+    }
+  })
+})
+
+//assign subject
+
+app.post("/assign_teacher_subject", (req, res) => {
+  let { id, email, subject, code, type } = req.body
+  pool.query("insert into teaching values(?,?,?)", [id, code, type], (error, result) => {
+    if (error) {
+      console.log(error, "error in get teachers")
+      res.status(500).json("-1")
+    }
+    else {
+      async function send(to_mail, message, subject, email) {
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: "jainamsanghavi008@gmail.com",
+            pass: "yadznuqzkalbilnu",
+          },
+        });
+        const mailoptions = {
+          from: "jainamsanghavi008@gmail.com",
+          to: to_mail,
+
+          html: email,
+          subject: subject,
+        };
+        try {
+          const result = await transporter.sendMail(mailoptions);
+          res.send("done")
+        } catch (error) {
+
+          console.log("error in  req  ", error);
+          res.send("error")
+
+        }
+      }
+      text = `<h3>Hello </h3> 
        
       <hr>
      New Subject:${subject}  is assigned to you by authority.
@@ -1360,12 +1403,23 @@ app.post("/assign_teacher_subject",(req,res)=>{
         email,
         '',
         `Regarding Subject assign   `,
-       text,
-      );  
+        text,
+      );
     }
   })
 })
 
+app.post(`/getperiods/ondate`, Auth2, (req, res) => {
+  var { date } = req.body;
+  pool.query(`SELECT distinct periodno from attendance where date="${date}" and teacher_id=${req.session.userid}`, (error, results) => {
+    if (error) {
+      console.log(error);
+      res.status(500).json("failed");
+    } else {
+      res.status(200).json(results);
+    }
+  })
+})
 
 //404
 app.all('*', (req, res) => {

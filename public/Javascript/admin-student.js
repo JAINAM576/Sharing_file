@@ -36,6 +36,7 @@ function handleFileSelect(evt) {
 }
 
 function addStudent() {
+    loading_ani(1)
     if (add_student[0] && add_student[0].Enrollment && add_student[0].Name && add_student[0].Branch
         && add_student[0].Batch && add_student[0].BatchYear && add_student[0].Enrollment) {
         $.post("/add/students",
@@ -43,22 +44,27 @@ function addStudent() {
                 student: add_student
             },
             function (data, status) {
+                loading_ani(0)
                 alert_func(data);
             });
     }
     else if (!add_student[0]) {
+        loading_ani(0)
         alert_danger('Add File');
     }
     else {
+        loading_ani(0)
         alert_danger('All the columns are not there please check');
     }
-
+    
 }
 
 //attendance analysis
 $.get("/getallbranch/distinct", function (data, status) {
     for (var i = 0; i < data.length; i++) {
         $("#branch_analysis").append(`<option>${data[i].branch}</option>`);
+        $("#u_branch").append(`<option>${data[i].branch}</option>`);
+        $("#student_branch").append(`<option>${data[i].branch}</option>`);
     }
 });
 
@@ -67,10 +73,15 @@ $.get("/getallbranch/distinct", function (data, status) {
 const d = new Date();
 let year = d.getFullYear();
 var i = year - 4
+$("#u_batchyear").append(`<option>4th Year (${i}-${i + 4})</option>`);
 $("#batchyear_analysis").append(`<option>4th Year (${i}-${i + 4})</option>`); i++;
+$("#u_batchyear").append(`<option>3rd Year (${i}-${i + 4})</option>`);
 $("#batchyear_analysis").append(`<option>3rd Year (${i}-${i + 4})</option>`); i++;
+$("#u_batchyear").append(`<option>2nd Year (${i}-${i + 4})</option>`);
 $("#batchyear_analysis").append(`<option>2nd Year (${i}-${i + 4})</option>`); i++;
+$("#u_batchyear").append(`<option>1st Year (${i}-${i + 4})</option>`);
 $("#batchyear_analysis").append(`<option>1st Year (${i}-${i + 4})</option>`); i++;
+$("#u_batchyear").append(`<option>New (${i}-${i + 4})</option>`);
 $("#batchyear_analysis").append(`<option>New (${i}-${i + 4})</option>`); i++;
 
 //search attendance make graphs
@@ -84,6 +95,7 @@ function attendance_analysis() {
     }
     else {
         //display none to flex
+        loading_ani(1)
         $("#myChart_container").css('display', 'block');
         $("#percentage_container").css('display', 'block');
         //year val
@@ -103,10 +115,14 @@ function attendance_analysis() {
 
                     $("#attendance_table").html(`<thead><tr></tr></thead><tbody></tbody>`);
 
-                    $("#attendance_table thead tr").append(`<th>Enrollment</th><th>Name</th>`)
+                    $("#attendance_table thead tr").append(`<th>Enrollment</th><th>Name</th>`);
+                    //subject
+                    $("#date_subject_analysis").html(`<option>All</option>`)
+                    //percentage
+                    $("#percentage_subject").html(`<option>All</option>`)
                     for (var i = 0; i < data.length; i++) {
                         //table
-                        $("#attendance_table thead tr").append(`<th>${data[i].subject} ( ${data[i].type} )</th>`);
+                        $("#attendance_table thead tr").append(`<th>${data[i].subject} <span style="display:block">( ${data[i].type} )</spna>   </th>`);
                         //variable
                         subjectInfo.push({ subject: data[i].subject, type: data[i].type, attendance: 0, total: 0, date: ` ` });
                         //chart
@@ -174,9 +190,12 @@ function attendance_analysis() {
 
                             //percentage wise attendance
                             percentage_count();
+
+                            loading_ani(0)
                         });
                 }
                 else {
+                    loading_ani(0)
                     alert_danger("No data Found");
                 }
             });
@@ -311,10 +330,10 @@ $(document).ready(function () {
 });
 
 
-$("#percentage_subject").click(function () {
+$("#percentage_subject").change(function () {
     percentage_count();
 });
-$("#date_subject_analysis").click(function () {
+$("#date_subject_analysis").change(function () {
     date_analysis();
 });
 
@@ -350,12 +369,46 @@ function giveattendance(data, subjectInfo) {
                 (attendance[index].subjectInfo[index2].total) += 1;
             }
         }
-        console.log(attendance)
         return attendance;
     }
 }
 
 
-
+$(document).ready(function () {
+    $("#add_one_student").submit(function () {
+        loading_ani(1)
+        var student = {
+            "enrollment": $("#student_enrollment").val(),
+            "name": $("#student_name").val(),
+            "branch": $("#student_branch").val(),
+            "batchyear": $("#student_batchyear").val(),
+            "batch": $("#student_batch").val(),
+            "sem": $("#student_sem").val(),
+            "email": $("#student_email").val(),
+            "contact": $("#student_contact").val()
+        }
+        if (student) {
+            $("#add_one_student").modal('hide');
+            //query success
+            $.post("/add/one/student",
+                {
+                    student: student
+                },
+                function (data, status) {
+                    loading_ani(0)
+                    alert_func(data);
+                }
+            ).fail(function () {
+                loading_ani(0)
+                alert_danger(`Some Error Occured`);
+            });
+        }
+        else {
+            loading_ani(0)
+            alert("Fill All Details");
+        }
+        return false;
+    });
+});
 
 document.getElementById('upload').addEventListener('change', handleFileSelect, false);
