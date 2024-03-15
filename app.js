@@ -1332,7 +1332,7 @@ app.get("/get_subjects", (req, res) => {
 //getting teachers
 
 app.get("/get_teachers", (req, res) => {
-  pool.query("select id,email,name from employee where role='Teacher'", (error, result) => {
+  pool.query("select id,email,name from employee where role='Teacher' and status='1'", (error, result) => {
     if (error) {
       console.log(error, "error in get teachers")
       res.send(-1)

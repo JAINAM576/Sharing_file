@@ -380,8 +380,6 @@ batch.addEventListener('change', (e) => {
         fas_fas = document.getElementsByClassName("fa-times")
         sub_selected_classes = document.getElementsByClassName("sub_selected")
         invoke()
-
-
         j = "<option  value=-1>Select batch:</option>"
 
         mymap.get(branch.value).forEach((element) => {
@@ -399,8 +397,9 @@ function submit_update() {
 
     loading_ani(1)
     if (branch.value == -1 || select_batch.length == 0 || subject.value == -1 || sem.value == -1 || type.value == -1) {
+        document.getElementById("close").click()
         alert_danger("Please select all values")
-
+        loading_ani(0)
         return;
     }
     obj.branch = branch.value
