@@ -293,7 +293,8 @@ btn_assign.addEventListener("click", (e) => {
     if (assign_code.value == -1 || assign_subject.value == -1 || assign_teacher.value == -1 || assign_type.value == -1) {
         alert_danger("Please select all values")
         return
-    }
+    }  
+    close_model.click()
     loading_ani(1)
     let obj = {
         subject: assign_subject.value,
@@ -304,16 +305,14 @@ btn_assign.addEventListener("click", (e) => {
     }
     $.post("/assign_teacher_subject", obj, (data, status) => {
         if (data == -1 || data == "error") {
-            loading_ani(0)
+            loading_ani(0)   
             alert_danger("Something went wrong")
         }
         else {
-            close_model.click()
             loading_ani(0)
             alert_func("Assigned Successfully")
         }
     }).fail(function () {
-        close_model.click()
         loading_ani(0)
         alert_danger("Something went wrong, might be assigned already")
     })
