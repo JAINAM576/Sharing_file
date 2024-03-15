@@ -56,7 +56,7 @@ function addStudent() {
         loading_ani(0)
         alert_danger('All the columns are not there please check');
     }
-    
+
 }
 
 //attendance analysis
@@ -85,7 +85,6 @@ $("#u_batchyear").append(`<option>New (${i}-${i + 4})</option>`);
 $("#batchyear_analysis").append(`<option>New (${i}-${i + 4})</option>`); i++;
 
 //search attendance make graphs
-
 function attendance_analysis() {
     var branch = $("#branch_analysis").val();
     var year = $("#batchyear_analysis").val();
@@ -122,7 +121,7 @@ function attendance_analysis() {
                     $("#percentage_subject").html(`<option>All</option>`)
                     for (var i = 0; i < data.length; i++) {
                         //table
-                        $("#attendance_table thead tr").append(`<th>${data[i].subject} <span style="display:block">( ${data[i].type} )</spna>   </th>`);
+                        $("#attendance_table thead tr").append(`<th>${data[i].subject} <span style="display:block">( ${data[i].type} )</spna></th>`);
                         //variable
                         subjectInfo.push({ subject: data[i].subject, type: data[i].type, attendance: 0, total: 0, date: ` ` });
                         //chart
@@ -191,6 +190,13 @@ function attendance_analysis() {
                             //percentage wise attendance
                             percentage_count();
 
+                            //teacher_info
+                            var teacher_data = [];
+                            for (var x = 0; x < subjectInfo.length; x++) {
+                                teacher_data.push({ teacher_id: data[x].teacher_id, teacher_name: "Unknown", teacher_sub: subjectInfo[x].subject })
+                            }
+                            teacher_info(teacher_data)
+
                             loading_ani(0)
                         });
                 }
@@ -201,6 +207,26 @@ function attendance_analysis() {
             });
     }
 };
+
+function teacher_info(teacher_data) {
+    $("#teacher_info_container").css('display', 'block')
+    for (var x = 0; x < teacher_data.length; x++) {
+        index = teachers.findIndex(obj => obj.id = teacher_data[x].teacher_id)
+        if(index != -1){
+            teacher_data[x].teacher_name = teachers[index].name
+        }
+    }
+    $("#teacher_info_table").DataTable({
+        destroy: true,
+        data: teacher_data,
+        bLengthChange: true,
+        columns: [
+            { data: "teacher_id", title: "Teacher ID" },
+            { data: "teacher_name", title: "Name" },
+            { data: "teacher_sub", title: "Subject" }
+        ],
+    });
+}
 function date_analysis() {
     var subject = $("#date_subject_analysis").val();
     var xValues = [0], yValues = [0];//attendance & date
@@ -342,6 +368,7 @@ var attendance = []
 function giveattendance(data, subjectInfo) {
     var j = 0, index, index2;
     attendance = [];
+
     if (data && subjectInfo) {
         for (var i = 0; i < data.length; i++) {
             index = attendance.findIndex(object => object.enrollment === data[i].enrollment);
@@ -410,5 +437,7 @@ $(document).ready(function () {
         return false;
     });
 });
+
+
 
 document.getElementById('upload').addEventListener('change', handleFileSelect, false);

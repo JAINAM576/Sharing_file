@@ -8,6 +8,7 @@ $.get("/getallteachers", function (data, status) {
             data: data,
             bLengthChange: true,
             columns: [
+                { data: "id", title: "ID" },
                 { data: "name", title: "Name" },
                 { data: "email", title: "Email" },
                 { data: "contact", title: "Contact" },

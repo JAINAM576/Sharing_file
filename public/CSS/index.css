@@ -472,11 +472,18 @@ select:focus {
 .loader_up .loader_bar {
     height: 8px;
 }
-#periods_ondate>span,#periods_update_ondate>span{
+
+#periods_ondate>span,
+#periods_update_ondate>span {
     color: red;
 }
 
-
+#teacher_info_container {
+    display: none;
+}
+#analysis{
+    background-color: white
+}
 
 @media screen and (max-width:1200px) {
     .main-button {

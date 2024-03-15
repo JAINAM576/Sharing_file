@@ -264,6 +264,7 @@ $.get("/get_subjects", (data, status) => {
         assign_code.innerHTML = j1
     }
 })
+var teachers = [];
 $.get("/get_teachers", (data, status) => {
     if (data == -1) {
         console.log("something went wrong in admin js assign teacher")
@@ -274,7 +275,7 @@ $.get("/get_teachers", (data, status) => {
         data.forEach((element) => {
             id_email.set(element.id, element.email)
             j += `<option value=${element.id}>${element.id} ( ${element.name} )</option>`
-
+            teachers.push({ id: element.id, name: element.name })
         })
         assign_teacher.innerHTML = j
     }

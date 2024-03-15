@@ -1710,3 +1710,6 @@ $(document).on('click', '.period_update_select', function () {
     $(this).removeClass("btn-outline-success")
     update_attendance_search(this.id)
 });
+$("#addsubject").on("hidden.bs.modal", function () {
+    close_reboot()
+});
