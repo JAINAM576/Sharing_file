@@ -725,6 +725,7 @@ function update_attendance_search(no) {
                     period: timetable[index].period_no
                 },
                 function (data, status) {
+
                     if (status == 'success') {
                         if (data == "0") {
                             alert_danger("Period on this day is not assigned");
@@ -949,8 +950,7 @@ function submit() {
                 submit_attendance: submit_attendance
             },
             function (data, status) {
-                if (status = "success")
-                    alert_func(data);
+                alert_func(data);
                 loading_ani(0)
                 change_date()
             }).fail(
@@ -983,8 +983,7 @@ function update_submit() {
                 submit_attendance: submit_attendance
             },
             function (data, status) {
-                if (status = "success")
-                    alert_func(data);
+                alert_func(data);
                 change_update_date()
                 loading_ani(0)
             }).fail(
@@ -1328,7 +1327,11 @@ function studentinfo() {
                 year: year
             },
             function (data, status) {
-
+                if (!data || data == "") {
+                    loading_ani(0)
+                    alert_danger("No data available");
+                    return;
+                }
                 $("#student_info_table").html(`<thead><tr></tr></thead><tbody></tbody>`);
                 $("#student_info_table thead tr").append(`<th>Enrollment</th><th>Name</th>`)
                 //subject

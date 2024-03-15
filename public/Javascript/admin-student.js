@@ -109,101 +109,103 @@ function attendance_analysis() {
             },
 
             function (data, status) {
-                if (data && data[0]) {
-                    var attendance = [], subjectInfo = [], x1Values = [];
-
-                    $("#attendance_table").html(`<thead><tr></tr></thead><tbody></tbody>`);
-
-                    $("#attendance_table thead tr").append(`<th>Enrollment</th><th>Name</th>`);
-                    //subject
-                    $("#date_subject_analysis").html(`<option>All</option>`)
-                    //percentage
-                    $("#percentage_subject").html(`<option>All</option>`)
-                    for (var i = 0; i < data.length; i++) {
-                        //table
-                        $("#attendance_table thead tr").append(`<th>${data[i].subject} <span style="display:block">( ${data[i].type} )</spna></th>`);
-                        //variable
-                        subjectInfo.push({ subject: data[i].subject, type: data[i].type, attendance: 0, total: 0, date: ` ` });
-                        //chart
-                        x1Values.push(data[i].subject)
-                        //subject
-                        $("#percentage_subject").append(`<option>${data[i].subject}</option>`)
-                        $("#date_subject_analysis").append(`<option>${data[i].subject}</option>`)
-                    }
-                    //raw data of attendance    
-                    $.post("/analysis/getalldata",
-                        {
-                            branch: branch,
-                            year: year,
-                            fromdate: fromdate
-                        },
-                        //making attendance array of obj & total of subjects
-                        function (data, status) {
-                            attendance = giveattendance(data, subjectInfo);
-                            var append_row, y1Values = [];
-                            for (var i = 0; i < attendance.length; i++) {
-                                append_row = `<tr><td>${attendance[i].enrollment}</td><td>${attendance[i].name}</td>`;
-                                for (var j = 0; j < subjectInfo.length; j++) {
-                                    if (y1Values[j] && y1Values[j] != undefined && data[i].attendance == 1)
-                                        y1Values[j] += attendance[i].subjectInfo[j].attendance;
-                                    else if (data[i].attendance == 1)
-                                        y1Values[j] = attendance[i].subjectInfo[j].attendance;
-                                    append_row += `<td>${attendance[i].subjectInfo[j].attendance} / ${attendance[i].subjectInfo[j].total}</td>`;
-                                }
-                                append_row += `</tr>`;
-                                $("#attendance_table tbody").append(append_row);
-                            }
-                            new DataTable('#attendance_table');
-                            $("#attendance_table").dataTable({
-                                "destroy": true,
-                            });
-
-                            //first doughnut chart
-                            var barColors = [
-                                "#b91d47",
-                                "#00aba9",
-                                "#2b5797",
-                                "#e8c3b9",
-                                "#1e7145",
-                                "#1e8145"
-
-                            ];
-                            new Chart("myChart1", {
-                                type: "doughnut",
-                                data: {
-                                    labels: x1Values,
-                                    datasets: [{
-                                        backgroundColor: barColors,
-                                        data: y1Values
-                                    }]
-                                },
-                                options: {
-                                    title: {
-                                        display: true,
-                                        text: "Total students present in class"
-                                    }
-                                }
-                            });
-                            //chart2
-                            date_analysis();
-
-                            //percentage wise attendance
-                            percentage_count();
-
-                            //teacher_info
-                            var teacher_data = [];
-                            for (var x = 0; x < subjectInfo.length; x++) {
-                                teacher_data.push({ teacher_id: data[x].teacher_id, teacher_name: "Unknown", teacher_sub: subjectInfo[x].subject })
-                            }
-                            teacher_info(teacher_data)
-
-                            loading_ani(0)
-                        });
-                }
-                else {
+                if (!data || data == "") {
                     loading_ani(0)
-                    alert_danger("No data Found");
+                    alert_danger("No data available");
+                    return;
                 }
+
+                var attendance = [], subjectInfo = [], x1Values = [];
+
+                $("#attendance_table").html(`<thead><tr></tr></thead><tbody></tbody>`);
+
+                $("#attendance_table thead tr").append(`<th>Enrollment</th><th>Name</th>`);
+                //subject
+                $("#date_subject_analysis").html(`<option>All</option>`)
+                //percentage
+                $("#percentage_subject").html(`<option>All</option>`)
+                for (var i = 0; i < data.length; i++) {
+                    //table
+                    $("#attendance_table thead tr").append(`<th>${data[i].subject} <span style="display:block">( ${data[i].type} )</spna></th>`);
+                    //variable
+                    subjectInfo.push({ subject: data[i].subject, type: data[i].type, attendance: 0, total: 0, date: ` ` });
+                    //chart
+                    x1Values.push(data[i].subject)
+                    //subject
+                    $("#percentage_subject").append(`<option>${data[i].subject}</option>`)
+                    $("#date_subject_analysis").append(`<option>${data[i].subject}</option>`)
+                }
+                //raw data of attendance    
+                $.post("/analysis/getalldata",
+                    {
+                        branch: branch,
+                        year: year,
+                        fromdate: fromdate
+                    },
+                    //making attendance array of obj & total of subjects
+                    function (data, status) {
+                        attendance = giveattendance(data, subjectInfo);
+                        var append_row, y1Values = [];
+                        for (var i = 0; i < attendance.length; i++) {
+                            append_row = `<tr><td>${attendance[i].enrollment}</td><td>${attendance[i].name}</td>`;
+                            for (var j = 0; j < subjectInfo.length; j++) {
+                                if (y1Values[j] && y1Values[j] != undefined && data[i].attendance == 1)
+                                    y1Values[j] += attendance[i].subjectInfo[j].attendance;
+                                else if (data[i].attendance == 1)
+                                    y1Values[j] = attendance[i].subjectInfo[j].attendance;
+                                append_row += `<td>${attendance[i].subjectInfo[j].attendance} / ${attendance[i].subjectInfo[j].total}</td>`;
+                            }
+                            append_row += `</tr>`;
+                            $("#attendance_table tbody").append(append_row);
+                        }
+                        new DataTable('#attendance_table');
+                        $("#attendance_table").dataTable({
+                            "destroy": true,
+                        });
+
+                        //first doughnut chart
+                        var barColors = [
+                            "#b91d47",
+                            "#00aba9",
+                            "#2b5797",
+                            "#e8c3b9",
+                            "#1e7145",
+                            "#1e8145"
+
+                        ];
+                        new Chart("myChart1", {
+                            type: "doughnut",
+                            data: {
+                                labels: x1Values,
+                                datasets: [{
+                                    backgroundColor: barColors,
+                                    data: y1Values
+                                }]
+                            },
+                            options: {
+                                title: {
+                                    display: true,
+                                    text: "Total students present in class"
+                                }
+                            }
+                        });
+                        //chart2
+                        date_analysis();
+
+                        //percentage wise attendance
+                        percentage_count();
+
+                        //teacher_info
+                        var teacher_data = [];
+                        for (var x = 0; x < subjectInfo.length; x++) {
+                            teacher_data.push({ teacher_id: data[x].teacher_id, teacher_name: "Unknown", teacher_sub: subjectInfo[x].subject })
+                        }
+                        teacher_info(teacher_data)
+
+                        loading_ani(0)
+                    });
+
+
             });
     }
 };
@@ -212,7 +214,7 @@ function teacher_info(teacher_data) {
     $("#teacher_info_container").css('display', 'block')
     for (var x = 0; x < teacher_data.length; x++) {
         index = teachers.findIndex(obj => obj.id = teacher_data[x].teacher_id)
-        if(index != -1){
+        if (index != -1) {
             teacher_data[x].teacher_name = teachers[index].name
         }
     }
