@@ -14,7 +14,9 @@
     padding: 0;
     box-sizing: border-box;
 }
-
+.modal,.modal-body{
+    overflow: auto;
+}
 body {
     margin: 0;
     padding: 0;
@@ -481,8 +483,18 @@ select:focus {
 #teacher_info_container {
     display: none;
 }
-#analysis{
+
+#analysis {
     background-color: white
+}
+
+.normal_button {
+    background-color: transparent;
+    border: none;
+}
+
+#datewise_table {
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
 @media screen and (max-width:1200px) {

@@ -292,7 +292,7 @@
             </form>
             <button onclick="addStudent()" class="btn btn-success mt-2">Submit</button>
         </div>
-        
+
         <p class="main-title g-0 mt-5" id="add_attendance">Attendance</p>
 
         <div class="form-group col-lg-4 col-md-5 col-sm-12">
@@ -466,6 +466,28 @@
             </div>
         </div>
     </div>
+
+
+    <!-- The Modal datewise attendance -->
+    <div class="modal modal-xl" id="datewise_table">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title" id="datewise_table_title">Attendance</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <table id="open_table_date" class="table table-bordered">
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- The Modal Add Subject -->
     <div class="modal" id="addsubject">
