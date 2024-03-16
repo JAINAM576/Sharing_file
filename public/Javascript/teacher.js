@@ -4,6 +4,9 @@ var role = getCookie("role")
 var email = getCookie("email")
 var pass = getCookie("pass")
 
+
+$(".modal").addClass('fade');
+
 function setCookie(cname, cvalue, exdays) {
     const d = new Date();
     d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
