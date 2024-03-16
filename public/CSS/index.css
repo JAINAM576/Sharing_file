@@ -14,9 +14,12 @@
     padding: 0;
     box-sizing: border-box;
 }
-.modal,.modal-body{
+
+.modal,
+.modal-body {
     overflow: auto;
 }
+
 body {
     margin: 0;
     padding: 0 !important;
@@ -581,6 +584,10 @@ select:focus {
 @media screen and (max-width:768px) {
     #left-sec {
         display: none;
+    }
+
+    .batchyear_analysis {
+        margin-top: 20px;
     }
 
     #all_info_percentage>div {
