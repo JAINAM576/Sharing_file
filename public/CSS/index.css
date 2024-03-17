@@ -1066,3 +1066,54 @@ input:checked+.slider:before {
 .slider.round:before {
     border-radius: 50%;
 }
+
+
+/* for email sender */
+.btn_email{
+    outline: white;
+    border: 1px solid white;
+    background-color: white;
+    color: black;
+    box-shadow: 3px 3px 3px black;
+    border-radius: 13px;
+    margin-bottom: 13px;
+}
+
+.email_wrapper{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 9999; /* Ensure overlay is on top of other content */
+    display: none; /* Initially hidden */
+  }
+  
+  .loader {
+    border: 5px solid #f3f3f3; /* Light grey border */
+    border-top: 5px solid #198754; /* Blue border for loader animation */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite; /* Animation duration and timing */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -25px; /* Center loader vertically */
+    margin-left: -25px; /* Center loader horizontally */
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); } /* Start position */
+    100% { transform: rotate(360deg); } /* End position */
+  }  
+ 
+  

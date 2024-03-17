@@ -20,6 +20,9 @@
 </head>
 
 <body>
+    <div id="overlay">
+        <div class="loader"></div>
+    </div>
 
     <!-- responsive navbar -->
     <header id="navbar">
@@ -494,19 +497,34 @@
                 </div>
                 <div id="all_info_percentage">
                     <div class="container p-4 my-5 bg-success text-white rounded">
-                        <h1 style="margin-bottom: 20px;">75% - 100% Attendance</h1>
+                        <!-- <h1 style="margin-bottom: 20px;">75% - 100% Attendance <button class="btn btn-primary btn_email" >Send mail</button></h1> -->
+                        <div class="email_wrapper">
+                    <h1 style="margin-bottom: 20px;">75% - 100% Attendance </h1>
+                    <button class="btn btn-primary btn_email" onclick="send_75_100()"  data-bs-toggle="modal"
+                    data-bs-target="#send_email_modal">Send mail</button>
+                    </div>
                         <div id="percent_75_content" class="bg-light p-4 text-black rounded">
 
                         </div>
                     </div>
                     <div class="container p-4 my-5 bg-warning text-white rounded">
-                        <h1 style="margin-bottom: 20px;">40% - 75% Attendance</h1>
+                        <!-- <h1 style="margin-bottom: 20px;">40% - 75% Attendance</h1> -->
+                        <div class="email_wrapper">
+                            <h1 style="margin-bottom: 20px;">40% - 75% Attendance </h1>
+                            <button class="btn btn-primary btn_email" data-bs-toggle="modal"
+                            data-bs-target="#send_email_modal" onclick="send_40_75()">Send mail</button>
+                            </div>
                         <div id="percent_40_content" class=" bg-light p-4 text-black rounded">
 
                         </div>
                     </div>
                     <div class="container p-4 my-5 bg-danger text-white rounded">
-                        <h1 style="margin-bottom: 20px;">0% - 40% Attendance</h1>
+                        <!-- <h1 style="margin-bottom: 20px;">0% - 40% Attendance</h1> -->
+                        <div class="email_wrapper">
+                            <h1 style="margin-bottom: 20px;">0% - 40% Attendance </h1>
+                            <button class="btn btn-primary btn_email" data-bs-toggle="modal"
+                            data-bs-target="#send_email_modal"  onclick="send_0_40()">Send mail</button>
+                            </div>
                         <div id="percent_0_content" class=" bg-light p-4 text-black rounded">
 
                         </div>
@@ -633,6 +651,7 @@
                         </div>
 
                         <button type="button" class="btn btn-primary" onclick="submit_update()">Submit</button>
+                        <button type="button" class="btn btn-dark" onclick="Delete_update()">Erase </button>
                     </form>
                     <br>
                 </div>
@@ -714,6 +733,48 @@
             </div>
         </div>
     </div>
+
+    <!-- model for sending mail -->
+    <div class="modal" id="send_email_modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Send Mailer</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form >
+                        <div class="mb-3 mt-3">
+                            <label for="email_sub">Email Subject:</label>
+                            <input type="text" class="form-control" id="email_sub" placeholder="Enter Email Subject"
+                                required>
+
+                        </div>
+                        <div class="mb-3">
+                            <label for="msg">Message</label>
+                          
+                                <textarea class="form-control" id="msg" placeholder="Enter Message here" required></textarea>
+
+                        </div>
+                    
+                        <button type="submit" class="btn btn-primary" >Submit</button>
+                    </form>
+                    <br>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="close_email">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 
     <!-- The Modal datewise attendance -->
     <div class="modal modal-xl" id="datewise_table">

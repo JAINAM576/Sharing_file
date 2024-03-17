@@ -1421,6 +1421,86 @@ app.post(`/getperiods/ondate`, Auth2, (req, res) => {
   })
 })
 
+//!Remove time_table detail 
+app.post("/remove_timetable_period",(req,res)=>{
+  
+  let {branch,batch,sem,type,period_no,day,subject}=req.body
+
+  
+  pool.query("delete from teacher_timetable where batch=(?) and branch=(?) and sem=(?) and type=(?) and period_no=(?) and day=(?) and subject=(?)",[batch,branch,sem,type,period_no,day,subject],(error,result)=>{
+    if(error){
+      res.sendStatus(503)
+    }
+    else{
+      res.sendStatus(200)
+    }
+  })
+
+})
+
+// !send mail to all students
+app.post("/send_all_emails",(req,res)=>{
+  console.log(req.body)
+  let {message,sub,emails}=req.body
+  let check_error=false
+  let index=0
+  async function send(to_mail, message, subject, email) {
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "jainamsanghavi008@gmail.com",
+        pass: "yadznuqzkalbilnu",
+      },
+      pool:true,
+    });
+    const mailoptions = {
+      from: "jainamsanghavi008@gmail.com",
+      to: to_mail,
+
+      html: email,
+      subject: subject,
+    };
+    try {
+      const result = await transporter.sendMail(mailoptions);
+    console.log("helo")
+    return 1
+   
+    } catch (error) {
+      console.log("error in  req  ", error);
+      // res.status(200).send(`error at ${index}`)
+      return 0
+    }
+  }
+  async function send_mail(){
+
+    for (index = 0; index < emails.length; index++) {
+      
+      let flag=await send(
+        emails[index],
+        '',
+        sub,
+        message,
+        );
+        // console.log(flag)
+        if(flag==0){
+          throw new SyntaxError('This is a syntax error');
+          break
+        }
+      }
+
+      return 1
+    }
+let j= send_mail()
+ j.then(()=>{
+   
+    res.status(200).send("1")
+  
+ }).catch(()=>{
+  res.status(200).send("Network Error")
+  console.log("error")
+ })
+})
 //404
 app.all('*', (req, res) => {
   res.sendFile(__dirname + "/public/Pages/Error/404.html");
@@ -1430,3 +1510,6 @@ const PORT = 3000 || process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server started on ${PORT} `);
 });
+
+
+

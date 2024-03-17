@@ -4,7 +4,12 @@ var role = getCookie("role")
 var email = getCookie("email")
 var pass = getCookie("pass")
 
-
+function blockinter(){
+    document.getElementById("overlay").style.display="block"
+}
+function unblockinter(){
+    document.getElementById("overlay").style.display="none"
+}
 $(".modal").addClass('fade');
 
 function setCookie(cname, cvalue, exdays) {
@@ -206,6 +211,8 @@ for (let index = 0; index < fa_classes.length; index++) {
         obj1.type = type_type
         obj1.subject = subject_subject
         obj1.sem = sem_sem
+        obj1.period_no=period_no
+        obj1.day=day_selected
 
         select_batch = batch_batch.innerText.split(',')
         //set the selected value in model
@@ -434,6 +441,39 @@ function submit_update() {
 
 }
 
+function Delete_update(){
+    
+    loading_ani(1)
+    alert("Are u sure?")
+    let temp_values={
+        branch:obj1.branch.innerText,
+        batch:obj1.batch.innerText,
+        sem:obj1.sem.innerText,
+        type:obj1.type.innerText,
+        period_no:obj1.period_no,
+        day:obj1.day,
+        subject:obj1.subject.innerText
+        
+        
+        
+    }
+  
+$.post("/remove_timetable_period",temp_values,(data,status)=>{
+    obj1.branch.innerText="No value"
+    obj1.batch.innerText="No value"
+    obj1.sem.innerText="No value"
+    obj1.type.innerText="No value"
+    obj1.subject.innerText="No value"
+ alert_func("Success")
+ loading_ani(0)
+ document.getElementById("close").click()
+}).fail(
+    function (){
+        alert_danger("Something went wrong!")
+        
+    }
+)
+}
 //know day of date yyyy-mm-dd 
 function getLocalizedDate(dateStr) {
     var d = new Date(dateStr);
@@ -501,8 +541,7 @@ $.get("/teacher/timetable",
                 }
             }
         }
-    }
-).fail(
+    }).fail(
     function () {
         alert_danger("Attendance is already there")
     }
@@ -1359,6 +1398,7 @@ function studentinfo() {
                         branch: branch,
                         year: year
                     }, function (data2, status) {
+                       
                         //raw data of attendance
                         giveattendance(data2, subjectInfo);
                         //table
@@ -1465,6 +1505,7 @@ function giveattendance(data, subjectInfo) {
             
             (studentInfo[index].subjectInfo[index2].alldates) += ` ${data[i].date},`;
         }
+      
         return studentInfo;
     }
 }
@@ -1479,7 +1520,7 @@ function opendates(i1, i2) {
             continue
         $("#open_table_date thead tr").append(`<th>${allDates[x]}</th>`)
     }
-    console.log(allDates, presentDates)
+    
     for (let x = 0; x < allDates.length - 1; x++) {
         var index = presentDates.findIndex((e) => e == allDates[x])
         if (index == -1)
@@ -1542,8 +1583,13 @@ function date_analysis() {
         }
     });
 }
-
+let email_75_100=[]
+let email_40_75=[]
+let email_0_40=[]
 function percentage_count() {
+    email_75_100=[]
+    email_40_75=[]
+    email_0_40=[]
     var subject = $("#percentage_subject").val();
     $("#percent_0_content").html(` `);
     $("#percent_40_content").html(` `);
@@ -1562,23 +1608,41 @@ function percentage_count() {
         }
         percentage = ((100 * total) / total_day).toFixed(2);
         if (percentage < 40) {
+            email_0_40.push(studentInfo[x].email)
+          
             $("#percent_0_content").append(`
                     <span class="btn btn-secondary mybackgray my-1 enroll_info" id="${studentInfo[x].enrollment}" >${studentInfo[x].enrollment}</span>
                     <span>,</span>`);
         }
         else if (percentage < 75) {
+            email_40_75.push(studentInfo[x].email)
+            
             $("#percent_40_content").append(`
                     <span class="btn btn-secondary mybackgray my-1 enroll_info" id="${studentInfo[x].enrollment}">${studentInfo[x].enrollment}</span>
                     <span>,</span>`);
         }
         else {
+            email_75_100.push(studentInfo[x].email)
             $("#percent_75_content").append(`
                     <span class="btn btn-secondary mybackgray my-1 enroll_info" id="${studentInfo[x].enrollment}">${studentInfo[x].enrollment}</span>
                     <span>,</span>`);
         }
     }
 
+
+    let btn_email=document.getElementsByClassName("btn_email")
+    let array=[email_75_100,email_40_75,email_0_40]
+    for (let index = 0; index < btn_email.length; index++) {
+       if(array[index].length==0){
+        btn_email[index].style.display="none"
+       }
+       else{
+        btn_email[index].style.display="block"
+       }
+        
+    }
 }
+
 
 $("#percentage_subject").change(function () {
     percentage_count();
@@ -1588,12 +1652,99 @@ $("#date_subject_analysis").change(function () {
     date_analysis();
 });
 
+$(document).ready(function(){
+    $("#send_email_modal").submit(function(){
+       
+        let message=$("#msg").val()
+        let sub=$("#email_sub").val()
+        let sender_obj={
+            emails:undefined,
+            sub:sub,
+            message:message
+
+        }
+if(flag_send_75_100){
+    flag_send_75_100=false
+    sender_obj.emails=email_75_100
+    
+}
+else if(flag_send_40_75){
+    flag_send_40_75=false
+    sender_obj.emails=email_40_75
+   
+}
+else if(flag_send_0_40){
+    flag_send_0_40=false
+    sender_obj.emails=email_0_40
+   
+}
+else{
+    sender_obj.emails=[single_mail]
+   
+}
+
+if(sender_obj.emails.length!=0 && sender_obj.message.length!=0 && sender_obj.sub.length!=0){
+    
+    blockinter()
+    loading_ani(1)
+    $.post("/send_all_emails",sender_obj,(data,status)=>{
+        document.getElementById("close_email").click()
+        
+        if(data!="1"){
+            unblockinter()
+            alert_danger(data)
+        }
+        else{
+unblockinter()
+            alert_func("Success")
+        }
+        loading_ani(0)
+       
+    }).fail(
+        function(){
+            unblockinter()
+            document.getElementById("close").click()
+            alert_danger("Something went wrong")
+            
+        }
+    )
+}
+
+        return false
+    })
+})
+let flag_send_75_100=false
+let flag_send_40_75=false
+let flag_send_0_40=false
+
+let email_sub=document.getElementById("email_sub")
+let msg=document.getElementById("msg")
+function  send_75_100(){
+    flag_send_75_100=true
+    email_sub.value=`75-100% Attendance/${$("#percentage_subject").val()}`
+    // console.log(email_75_100,"75-100")
+}
+function  send_40_75(){
+    flag_send_40_75=true
+    email_sub.value=`40-75% Attendance/${$("#percentage_subject").val()}`
+    // console.log(email_40_75,"40-75")
+}
+function  send_0_40(){
+    flag_send_0_40=true
+    email_sub.value=`0-40% Attendance/${$("#percentage_subject").val()}`
+    // console.log(email_0_40,"0-40")
+}
+
+
+
+let single_mail=undefined
 $(document).ready(function () {
     $("#all_info_percentage").on('click', '.enroll_info', function () {
         $("#modal_percentage").modal('show');
         var enrollment = Number(this.id), text, total = 0, percentage = 0, subject, total_day = 0;
         index = studentInfo.findIndex(object => object.enrollment === enrollment);
 
+single_mail=studentInfo[index].email
         text = `<p>Enrollment : ${enrollment}</p><p>Name : ${studentInfo[index].name}</p>`;
         for (var y = 0; y < studentInfo[index].subjectInfo.length; y++) {
             total += studentInfo[index].subjectInfo[y].attendance;
@@ -1635,7 +1786,8 @@ $(document).ready(function () {
             }
 
         }
-        text += `<buttton class="btn btn-primary" >Mail</button>`;
+        text += `<buttton class="btn btn-primary"  data-bs-toggle="modal"
+        data-bs-target="#send_email_modal">Mail</button>`;
 
         $("#modal_percentage .modal-body").html(text);
     });
