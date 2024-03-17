@@ -1313,19 +1313,61 @@ $.get("/getallbranch/distinct", function (data, status) {
 function studentinfo() {
     var branch = $("#branch_analysis").val();
     var year = $("#batchyear_analysis").val();
-    var fromdate = "2023-01-01";
+    var sem = $("#sem_analysis").val()
+    // Get the current date
+    var today = new Date();
+    // Get the day of the month
+    var dd = today.getDate();
+    // Get the month (adding 1 because months are zero-based)
+    var mm = today.getMonth() + 1;
+    // Get the year
+    var yyyy = today.getFullYear();
 
-    if (branch == "Select" || year == "Select") {
+    // Add leading zero if the day is less than 10
+    if (dd < 10) {
+        dd = '0' + dd;
+    }
+    // Add leading zero if the month is less than 10
+    if (mm < 10) {
+        mm = '0' + mm;
+    }
+    today = yyyy + '-' + mm + '-' + dd
+    if (mm > 6)
+        mm -= 6
+    else {
+        yyyy -= 1
+        mm = mm - 6 + 12
+    }
+    past6month = yyyy + '-' + mm + '-' + dd
+    if (branch == "Select" || year == "Select" || sem == "Select") {
         alert_danger("Fill all the details")
     }
     else {
         var subjectInfo = [], x1Values = [];
         //year val
+        var sem_i = select_sem.findIndex(obj => obj.sem == sem)
+        if (sem_i == -1) {
+            alert_danger("Some error in sem")
+        }
+        var fromdate, todate;
+        if (select_sem[sem_i].fromdate == "") {
+            fromdate = past6month
+        }
+        else {
+            fromdate = select_sem[sem_i].fromdate
+        }
+        if (select_sem[sem_i].todate == "") {
+            todate = today
+        }
+        else {
+            todate = select_sem[sem_i].todate
+        }
         year = year.slice((year.length - 10), year.length - 1);
         loading_ani(1)
         $.post("/teacher/studentinfo/subject",
             {
                 fromdate: fromdate,
+                todate: todate,
                 branch: branch,
                 year: year
             },
@@ -1356,6 +1398,7 @@ function studentinfo() {
                 $.post("/teacher/studentinfo",
                     {
                         fromdate: fromdate,
+                        todate: todate,
                         branch: branch,
                         year: year
                     }, function (data2, status) {
@@ -1462,7 +1505,7 @@ function giveattendance(data, subjectInfo) {
             if (index2 != -1) {
                 (studentInfo[index].subjectInfo[index2].total) += 1;
             }
-            
+
             (studentInfo[index].subjectInfo[index2].alldates) += ` ${data[i].date},`;
         }
         return studentInfo;
@@ -1628,7 +1671,7 @@ $(document).ready(function () {
                 <path class="cls-6" d="M86.87,85.62h14.06a1.8,1.8,0,0,1,1.79,1.79v11.7a1.8,1.8,0,0,1-1.79,1.79H86.87a1.8,1.8,0,0,1-1.79-1.79V87.41a1.79,1.79,0,0,1,1.79-1.79Z"/>
                 <path class="cls-6" d="M22,56.42H36a1.8,1.8,0,0,1,1.79,1.8V69.91A1.8,1.8,0,0,1,36,71.7H22a1.8,1.8,0,0,1-1.8-1.79V58.22a1.81,1.81,0,0,1,1.8-1.8Z"/><path class="cls-6" d="M54.58,56.42H68.64a1.8,1.8,0,0,1,1.79,1.8V69.91a1.8,1.8,0,0,1-1.79,1.79H54.58a1.79,1.79,0,0,1-1.79-1.79V58.22a1.8,1.8,0,0,1,1.79-1.8Z"/>
                 <path class="cls-6" d="M86.87,56.42h14.06a1.8,1.8,0,0,1,1.79,1.8V69.91a1.8,1.8,0,0,1-1.79,1.79H86.87a1.79,1.79,0,0,1-1.79-1.79V58.22a1.8,1.8,0,0,1,1.79-1.8Z"/></svg></button></p>`
-            
+
             }
             else {
                 text += `<p>${subject} : None</p>`
@@ -1656,6 +1699,7 @@ function loading_ani(x) {
 }
 
 function change_date() {
+    loading_ani(1)
     var date = $("#date").val();
     const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const d = getLocalizedDate(date);
@@ -1693,6 +1737,10 @@ function change_date() {
         }
         if (count.length == 0)
             $("#periods_ondate").append("<span>No Periods Assigned</span>")
+        loading_ani(0)
+    }).fail(() => {
+        loading_ani(0)
+        alert_danger("Some error")
     });
 }
 //chage date 1st time
@@ -1714,6 +1762,7 @@ $(document).on('click', '.period_select', function () {
 });
 
 function change_update_date() {
+    loading_ani(1)
     var date = $("#update_date").val();
     const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const d = getLocalizedDate(date);
@@ -1723,7 +1772,7 @@ function change_update_date() {
     var count = []
     $.post(`/getperiods/ondate`, { date: date }, function (data, status) {
         //attendance already there
-        for (var x = 0; x < data.length; x++) {
+        for (var x = 0; x < data.length; x++) { 
             count.push({ no: data[x].periodno, there: 1 });
         }
         //buttons
@@ -1733,7 +1782,11 @@ function change_update_date() {
         }
         if (count.length == 0)
             $("#periods_update_ondate").append("<span>No Attendance Taken</span>")
-    });
+        loading_ani(0)
+    }).fail(() => {
+        loading_ani(0)
+        alert_danger("Some error")
+    });;
 }
 //chage date 1st time
 setTimeout(change_update_date, 100)
@@ -1755,3 +1808,77 @@ $(document).on('click', '.period_update_select', function () {
 $("#addsubject").on("hidden.bs.modal", function () {
     close_reboot()
 });
+
+
+
+//----------------- Student's Sem -------------------
+var select_sem = []
+class Sem {
+    constructor(sem, fromdate, todate) {
+        this.sem = sem;
+        this.fromdate = fromdate;
+        this.todate = todate;
+    }
+}
+$(document).ready(
+    $("#batchyear_analysis").change(() => {
+        var branch = $("#branch_analysis").val()
+        if (branch != "Select")
+            getsem()
+    })
+)
+$(document).ready(
+    $("#branch_analysis").change(() => {
+        var branch = $("#batchyear_analysis").val()
+        if (branch != "Select")
+            getsem()
+    })
+)
+//get select sem
+function getsem() {
+    var batch = $("#batchyear_analysis").val()
+    var branch = $("#branch_analysis").val()
+    batch = batch.slice((batch.length - 10), batch.length - 1);
+    $.post(`/distinct/sem`, {
+        branch: branch,
+        batch: batch
+    }, function (distinct_sem, status) {
+        $.post(`/sem_info`, {
+            branch: branch,
+            batch: batch
+        }, function (sem_data, status) {
+            select_sem = []
+            $("#sem_analysis").html(`<option>Select</option>`)
+            if (distinct_sem && distinct_sem[0]) {
+                var current_sem = distinct_sem[0].sem;
+                for (x in sem_data) {
+                    var index = select_sem.findIndex(obj => obj.sem == sem_data[x].sem)
+                    if (index == -1) {
+                        select_sem.push(new Sem(sem_data[x].sem, ``, ``))
+                        if (sem_data[x].datetype == "From")
+                            select_sem[select_sem.length - 1].fromdate = sem_data[x].date
+                        else if (sem_data[x].datetype == "To")
+                            select_sem[select_sem.length - 1].todate = sem_data[x].date
+
+                    }
+                    else {
+                        if (sem_data[x].datetype == "From")
+                            select_sem[index].fromdate = sem_data[x].date
+                        else if (sem_data[x].datetype == "To")
+                            select_sem[index].todate = sem_data[x].date
+                    }
+                }
+                i_current = select_sem.findIndex(obj => obj.sem == current_sem)
+                if (i_current == -1)
+                    select_sem.push(new Sem(current_sem, ``, ``))
+                select_sem.sort((a, b) => (a.sem > b.sem) ? 1 : ((b.sem > a.sem) ? -1 : 0))
+                for (let i = 0; i < select_sem.length; i++) {
+                    $("#sem_analysis").append(`<option>${select_sem[i].sem}</option>`)
+                }
+            }
+            else {
+                alert_danger("There is No data")
+            }
+        })
+    })
+}

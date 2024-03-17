@@ -277,6 +277,8 @@
         </div>
         <!-- alert -->
         <p class="main-title g-0" id="add_student">Add Students One By One</p>
+        
+        
         <div>
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#add_one_student">Add
                 Student</button>
@@ -308,9 +310,17 @@
                 <option>Select</option>
             </select>
         </div>
-        <div class="form-group col-lg-4 col-md-4 col-sm-12"><button class="btn btn-outline-success"
+        <div class="form-group col-lg-4 col-md-5 col-sm-12">
+            <label for="sem_analysis" class="form-label sem_analysis" style="font-weight: 700;">Sem :</label>
+            <select class="form-select form-control" id="sem_analysis" name="sem_analysis"
+                style="width: 90%;">
+                <option>Select</option>
+            </select>
+        </div>
+        <div class="form-group col-lg-4 col-md-12 col-sm-12"><button class="btn btn-outline-success"
                 id="attendance_analysis" onclick="attendance_analysis()">Search Now</button></div>
         <div class="col-12 table-container g-0 mt-4">
+            
             <table id="attendance_table" class="table table-bordered table-hover"
                 style="width: 100%;margin: 20px 0!important;">
                 <thead>

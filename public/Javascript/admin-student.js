@@ -88,33 +88,79 @@ $("#batchyear_analysis").append(`<option>New (${i}-${i + 4})</option>`); i++;
 function attendance_analysis() {
     var branch = $("#branch_analysis").val();
     var year = $("#batchyear_analysis").val();
-    var fromdate = "2023-01-01";
-    if (branch == "Select" || year == "Select") {
-        alert_danger("Fill All Details.")
+    var sem = $("#sem_analysis").val()
+    // Get the current date
+    var today = new Date();
+    // Get the day of the month
+    var dd = today.getDate();
+    // Get the month (adding 1 because months are zero-based)
+    var mm = today.getMonth() + 1;
+    // Get the year
+    var yyyy = today.getFullYear();
+
+    // Add leading zero if the day is less than 10
+    if (dd < 10) {
+        dd = '0' + dd;
     }
+    // Add leading zero if the month is less than 10
+    if (mm < 10) {
+        mm = '0' + mm;
+    }
+    today = yyyy + '-' + mm + '-' + dd
+    if (mm > 6)
+        mm -= 6
+    else {
+        yyyy -= 1
+        mm = mm - 6 + 12
+    }
+    past6month = yyyy + '-' + mm + '-' + dd
+    if (branch == "Select" || year == "Select" || sem == "Select") {
+        alert_danger("Fill all the details")
+    }
+
     else {
         //display none to flex
         loading_ani(1)
-        $("#myChart_container").css('display', 'block');
-        $("#percentage_container").css('display', 'block');
+        //year val
+        var sem_i = select_sem.findIndex(obj => obj.sem == sem)
+        if (sem_i == -1) {
+            alert_danger("Some error in sem")
+        }
+        var fromdate, todate;
+        if (select_sem[sem_i].fromdate == "") {
+            fromdate = past6month
+        }
+        else {
+            fromdate = select_sem[sem_i].fromdate
+        }
+        if (select_sem[sem_i].todate == "") {
+            todate = today
+        }
+        else {
+            todate = select_sem[sem_i].todate
+        }
         //year val
         year = year.slice((year.length - 10), year.length - 1);
 
         //distinct sub and type
         $.post("/analysis/subject",
             {
+                fromdate: fromdate,
+                todate: todate,
                 branch: branch,
-                year: year,
-                fromdate: fromdate
+                year: year
             },
 
             function (data, status) {
                 if (!data || data == "") {
                     loading_ani(0)
+
                     alert_danger("No data available");
                     return;
                 }
-
+                
+                $("#myChart_container").css('display', 'block');
+                $("#percentage_container").css('display', 'block');
                 var attendance = [], subjectInfo = [], x1Values = [];
 
                 $("#attendance_table").html(`<thead><tr></tr></thead><tbody></tbody>`);
@@ -140,9 +186,10 @@ function attendance_analysis() {
                 //raw data of attendance    
                 $.post("/analysis/getalldata",
                     {
+                        fromdate: fromdate,
+                        todate: todate,
                         branch: branch,
-                        year: year,
-                        fromdate: fromdate
+                        year: year
                     },
                     //making attendance array of obj & total of subjects
                     function (data, status) {
@@ -475,6 +522,80 @@ $(document).ready(function () {
         return false;
     });
 });
+
+
+//----------------- Student's Sem -------------------
+var select_sem = []
+class Sem {
+    constructor(sem, fromdate, todate) {
+        this.sem = sem;
+        this.fromdate = fromdate;
+        this.todate = todate;
+    }
+}
+$(document).ready(
+    $("#batchyear_analysis").change(() => {
+        var branch = $("#branch_analysis").val()
+        if (branch != "Select")
+            getsem()
+    })
+)
+$(document).ready(
+    $("#branch_analysis").change(() => {
+        var branch = $("#batchyear_analysis").val()
+        if (branch != "Select")
+            getsem()
+    })
+)
+//get select sem
+function getsem() {
+    var batch = $("#batchyear_analysis").val()
+    var branch = $("#branch_analysis").val()
+    batch = batch.slice((batch.length - 10), batch.length - 1);
+    $.post(`/distinct/sem`, {
+        branch: branch,
+        batch: batch
+    }, function (distinct_sem, status) {
+        $.post(`/sem_info`, {
+            branch: branch,
+            batch: batch
+        }, function (sem_data, status) {
+            select_sem = []
+            $("#sem_analysis").html(`<option>Select</option>`)
+            if (distinct_sem && distinct_sem[0]) {
+                var current_sem = distinct_sem[0].sem;
+                for (x in sem_data) {
+                    var index = select_sem.findIndex(obj => obj.sem == sem_data[x].sem)
+                    if (index == -1) {
+                        select_sem.push(new Sem(sem_data[x].sem, ``, ``))
+                        if (sem_data[x].datetype == "From")
+                            select_sem[select_sem.length - 1].fromdate = sem_data[x].date
+                        else if (sem_data[x].datetype == "To")
+                            select_sem[select_sem.length - 1].todate = sem_data[x].date
+
+                    }
+                    else {
+                        if (sem_data[x].datetype == "From")
+                            select_sem[index].fromdate = sem_data[x].date
+                        else if (sem_data[x].datetype == "To")
+                            select_sem[index].todate = sem_data[x].date
+                    }
+                }
+                i_current = select_sem.findIndex(obj => obj.sem == current_sem)
+                if (i_current == -1)
+                    select_sem.push(new Sem(current_sem, ``, ``))
+                
+                select_sem.sort((a, b) => (a.sem > b.sem) ? 1 : ((b.sem > a.sem) ? -1 : 0))
+                for (let i = 0; i < select_sem.length; i++) {
+                    $("#sem_analysis").append(`<option>${select_sem[i].sem}</option>`)
+                }
+            }
+            else {
+                alert_danger("There is No data")
+            }
+        })
+    })
+}
 
 
 
