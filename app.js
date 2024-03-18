@@ -499,9 +499,10 @@ app.get("/teacher/timetable", Auth2, (req, res) => {
 
 //-----------------------teacher analysis--------------------------
 app.post("/teacher/studentinfo/subject", Auth2, (req, res) => {
-  var { fromdate, branch, year } = req.body;
+  var { fromdate, branch, year, todate } = req.body;
   pool.query(`SELECT DISTINCT attendance.subject,attendance.type FROM attendance INNER JOIN student ON attendance.enrollment=student.enrollment 
-  WHERE attendance.date > "${fromdate}" AND student.branch="${branch}" AND student.batchyear="${year}" AND attendance.teacher_id=${req.session.userid}`, (error, results) => {
+  WHERE attendance.date >= "${fromdate}" And  attendance.date <= "${todate}"
+  AND student.branch="${branch}" AND student.batchyear="${year}" AND attendance.teacher_id=${req.session.userid}`, (error, results) => {
     if (error) {
       console.log(error);
       res.status(500).json("failed");
@@ -513,9 +514,9 @@ app.post("/teacher/studentinfo/subject", Auth2, (req, res) => {
 });
 
 app.post("/teacher/studentinfo", Auth2, (req, res) => {
-  var { fromdate, branch, year } = req.body;
+  var { fromdate, branch, year, todate } = req.body;
   pool.query(`SELECT * FROM attendance INNER JOIN student ON attendance.enrollment=student.enrollment 
-  WHERE attendance.date > "${fromdate}" AND student.branch="${branch}" AND student.batchyear="${year}" AND attendance.teacher_id=${req.session.userid}`, (error, results) => {
+  WHERE attendance.date >= "${fromdate}" And  attendance.date <= "${todate}" AND student.branch="${branch}" AND student.batchyear="${year}" AND attendance.teacher_id=${req.session.userid}`, (error, results) => {
     if (error) {
       console.log(error);
       res.status(500).json("failed");
@@ -578,6 +579,31 @@ app.get("/teacher_subject", Auth2, (req, res) => {
     }
     else {
       res.send(result)
+    }
+  })
+})
+//!! get teacher teaching subject
+app.post("/distinct/sem", Auth, (req, res) => {
+  let { branch, batch } = req.body
+  pool.query("select distinct sem from student where branch=(?) and batchyear=(?)", [branch, batch], (error, result) => {
+    if (error) {
+      console.log("error in get teacher teaching subject", error)
+      res.send("error")
+    }
+    else {
+      res.status(200).json(result)
+    }
+  })
+})
+app.post("/sem_info", Auth, (req, res) => {
+  let { branch, batch } = req.body
+  pool.query("select distinct * from sem_info  where branch=(?) and batchyear=(?)", [branch, batch], (error, result) => {
+    if (error) {
+      console.log("error in get teacher teaching subject", error)
+      res.send("error")
+    }
+    else {
+      res.status(200).json(result)
     }
   })
 })
@@ -814,7 +840,7 @@ app.post("/update/subject", Auth1, (req, res) => {
 
 ////------------------------- Update Sem ----------------------------
 app.post("/update/sem", Auth1, (req, res) => {
-  const { u_branch, u_batchyear } = req.body;
+  const { u_branch, u_batchyear, date, sem } = req.body;
   if (!u_branch || !u_batchyear) {
     res.status(500).json({ error: "Bad Request - Missing required id" });
   } else {
@@ -823,14 +849,33 @@ app.post("/update/sem", Auth1, (req, res) => {
       [u_branch, u_batchyear],
       (error, results) => {
         if (error) {
+          console.error(error)
           res.status(500).json(error);
         } else {
-          res.status(200).json("Sucessfully Updated");
+          pool.query("insert into sem_info (datetype, date, branch, batchyear, sem) values ((?),(?),(?),(?),(?))", ["To", date, u_branch, u_batchyear, sem-1], ((error3, results3) => {
+            if (error3) {
+              console.error(error3)
+              res.status(500).json(error3);
+            }
+            else{
+              pool.query("insert into sem_info (datetype, date, branch, batchyear, sem) values ((?),(?),(?),(?),(?))", ["From", date, u_branch, u_batchyear, sem], ((error4, results4) => {
+                if (error4) {
+                  console.error(error4)
+                  res.status(500).json(error4);
+                } 
+                else{   
+                  res.status(200).json("Sucessfully Updated");
+                }
+              }))
+            }
+          }))
+          
         }
       }
     );
   }
 });
+
 
 // //--------------------------Delete student------------------------------
 app.post("/delete/student", Auth1, (req, res) => {
@@ -909,9 +954,9 @@ app.post("/delete/subject", Auth1, (req, res) => {
 
 
 app.post("/analysis/subject", Auth1, (req, res) => {
-  var { fromdate, branch, year } = req.body;
+  var { fromdate, branch, year, todate } = req.body;
   pool.query(`SELECT DISTINCT attendance.subject,attendance.type FROM attendance INNER JOIN student ON attendance.enrollment=student.enrollment 
-  WHERE attendance.date > "${fromdate}" AND student.branch="${branch}" AND student.batchyear="${year}"`, (error, results) => {
+  WHERE attendance.date >= "${fromdate}" And  attendance.date <= "${todate}" AND student.branch="${branch}" AND student.batchyear="${year}"`, (error, results) => {
     if (error) {
       console.log(error);
       res.status(500).json("failed");
@@ -924,9 +969,9 @@ app.post("/analysis/subject", Auth1, (req, res) => {
 
 
 app.post("/analysis/getalldata", Auth1, (req, res) => {
-  var { fromdate, branch, year } = req.body;
+  var { fromdate, branch, year, todate } = req.body;
   pool.query(`SELECT * FROM attendance INNER JOIN student ON attendance.enrollment=student.enrollment 
-  WHERE attendance.date > "${fromdate}" AND student.branch="${branch}" AND student.batchyear="${year}"`, (error, results) => {
+  WHERE attendance.date >= "${fromdate}" And  attendance.date <= "${todate}" AND student.branch="${branch}" AND student.batchyear="${year}"`, (error, results) => {
     if (error) {
       console.log(error);
       res.status(500).json("failed");
@@ -1411,14 +1456,16 @@ app.post("/assign_teacher_subject", (req, res) => {
 
 app.post(`/getperiods/ondate`, Auth2, (req, res) => {
   var { date } = req.body;
-  pool.query(`SELECT distinct periodno from attendance where date="${date}" and teacher_id=${req.session.userid}`, (error, results) => {
-    if (error) {
-      console.log(error);
-      res.status(500).json("failed");
-    } else {
-      res.status(200).json(results);
-    }
-  })
+  if (date && date != "") {
+    pool.query(`SELECT distinct periodno from attendance where date="${date}" and teacher_id=${req.session.userid}`, (error, results) => {
+      if (error) {
+        console.log(error);
+        res.status(500).json("failed");
+      } else {
+        res.status(200).json(results);
+      }
+    })
+  }
 })
 
 //!Remove time_table detail 

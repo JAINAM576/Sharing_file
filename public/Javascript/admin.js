@@ -293,7 +293,7 @@ btn_assign.addEventListener("click", (e) => {
     if (assign_code.value == -1 || assign_subject.value == -1 || assign_teacher.value == -1 || assign_type.value == -1) {
         alert_danger("Please select all values")
         return
-    }  
+    }
     close_model.click()
     loading_ani(1)
     let obj = {
@@ -305,7 +305,7 @@ btn_assign.addEventListener("click", (e) => {
     }
     $.post("/assign_teacher_subject", obj, (data, status) => {
         if (data == -1 || data == "error") {
-            loading_ani(0)   
+            loading_ani(0)
             alert_danger("Something went wrong")
         }
         else {
@@ -320,27 +320,54 @@ btn_assign.addEventListener("click", (e) => {
 
 $(document).ready(function () {
     $("#update_sem").submit(function () {
+        
+        $("#update_sem").modal('hide');
         u_branch = $("#u_branch").val();
         year = $("#u_batchyear").val();
         year = year.slice((year.length - 10), year.length - 1);
         u_batchyear = year;
         if (u_batchyear && u_branch) {
             loading_ani(1)
-            $("#update_sem").modal('hide');
-            $.post("/update/sem",
-                {
-                    "u_branch": u_branch,
-                    "u_batchyear": u_batchyear
-                },
-                function (data, status) {
-                    loading_ani(0)
-                    alert_func(data);
-                }
-            ).fail(function () {
-                loading_ani(0)
-                alert_danger(`Some Error Occured`);
-            });
+            $.post(`/distinct/sem`, {
+                branch: u_branch,
+                batch: u_batchyear
+            }, function (distinct_sem, status) {
+                    // Get the current date
+                    var today = new Date();
+                    // Get the day of the month
+                    var dd = today.getDate();
+                    // Get the month (adding 1 because months are zero-based)
+                    var mm = today.getMonth() + 1;
+                    // Get the year
+                    var yyyy = today.getFullYear();
 
+                    // Add leading zero if the day is less than 10
+                    if (dd < 10) {
+                        dd = '0' + dd;
+                    }
+                    // Add leading zero if the month is less than 10
+                    if (mm < 10) {
+                        mm = '0' + mm;
+                    }
+                    sem = distinct_sem[0].sem
+                    sem += 1
+                    var today = yyyy + '-' + mm + '-' + dd
+                    $.post("/update/sem",
+                        {
+                            "u_branch": u_branch,
+                            "u_batchyear": u_batchyear,
+                            "sem": sem,
+                            "date": today
+                        },
+                        function (data, status) {
+                            loading_ani(0)
+                            alert_func(data);
+                        }
+                    ).fail(function () {
+                        loading_ani(0)
+                        alert_danger(`Some Error Occured`);
+                    });
+                })
         }
         else {
             alert("Fill All Details");

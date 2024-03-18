@@ -258,7 +258,7 @@ select:focus {
 #attendance_search,
 #attendance_analysis,
 #update_attendance_search {
-    margin: 31px 0px 0px 30%;
+    margin: 15px 0px 0px 0%;
 }
 
 #period-details {
@@ -559,6 +559,9 @@ select:focus {
         overflow: hidden;
     }
 
+    .sem_analysis {
+        margin-top: 20px;
+    }
 
     .loader_container {
         position: fixed;
@@ -640,13 +643,6 @@ select:focus {
     border-radius: 10px !important;
     margin-right: 4px;
 
-}
-
-
-/* for navbar */
-
-#navbar {
-    /* background-color: #000000; */
 }
 
 .navbar.active {
